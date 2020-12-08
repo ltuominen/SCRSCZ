@@ -16,7 +16,7 @@ data$contrast <- data$Csplus-data$Csminus
 # remove an outlier from the data 
 data <- subset(data, ID!='USRE')
 
-# test if SCR responses to the contrast, CS+ or CS- are different in groups while accounting for study
+# test if SCR responses to the contrast, CS+ or CS- are different between the groups while accounting for study
 m.contrast <- anova(lme(contrast ~ Group, random =~ 1|STUDY, data=data))
 m.Csminus <- anova(lme(Csminus ~ Group, random =~ 1|STUDY, data=data))
 m.Csplus <- anova(lme(Csplus ~ Group, random =~ 1|STUDY, data=data))
@@ -45,18 +45,26 @@ sink()
 ### Explore symptom correlations in the SCZ group 
 SCZdata <- subset(data, Group=='SCZ')
 clinical <- c("PANSS.POS", "PANSS.NEG", "PANSS.GEN", "PANSS.TOT", "CPZ")
-outcome <- c('Csminus', 'Csplus', 'contrast')
+outcome <- c('contrast', 'Csplus', 'Csminus' )
 
+results <- matrix(nrow=3, ncol=15)
+r=1 
 for (y in outcome){
+  k=1
   for (c in clinical){
     f <- as.formula(paste(y, c, sep='~'))
     m <- lme(f, random =~ 1|STUDY, data=SCZdata)
-    filename <- paste('~/Documents/Research/SCZ_SCR/', c,y, 'sczSTATS.txt', sep='')
-    sink(filename)
-    print(summary(m))
-    sink()
-  }}
-
+    results[r,k]=fixef(m)[2]
+    results[r,k+1]=sqrt(anova(m)[2,3]) * sign(fixef(m)[2])
+    results[r,k+2]=anova(m)[2,4]
+    k=k+3
+    }
+  r=r+1 
+}
+cnames <- paste(rep(clinical, each=3), c('b', 't', 'p'), sep='.')
+colnames(results) <- cnames
+rownames(results) <- outcome
+write.csv( results, '~/Documents/Research/SCZ_SCR/clinical_correlations.csv')
 
 ## calculate overall effect size using metafor 
 means = aggregate(data$contrast, by = list(data$STUDY,data$Group),FUN = mean)
@@ -73,7 +81,7 @@ metadat <- escalc(measure="SMD", m2i=SCZ_AVG, sd2i=SCZ_STD, n2i=SCZ_N,
                m1i=CTR_AVG, sd1i=CTR_STD, n1i=CTR_N, data=D)
 metares <- rma(yi, vi, data=metadat)
 combined.cohend <- round(metares$b[1],2)
-
+write.csv(metadat, '~/Documents/Research/SCZ_SCR/metadata.csv')
 
 ## plot figure 1 & figure 2 ## 
 
