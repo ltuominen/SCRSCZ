@@ -127,29 +127,21 @@ ggsave(file="~/Documents/Research/SCZ_SCR/figure2.png", plot=p, width=16, height
 
 PDIdata <- subset(data, Group=='SCZ')
 PDIdata <- PDIdata[complete.cases(PDIdata$PDI.total), ]
-mrob.PDI <- summary(lmrob(Csminus ~ PDI.total + STUDY +Age.Y+gender, data=PDIdata))
+PDIdata$PDIadjN <- ifelse(SCZdata$STUDY=='TUOMINEN_XXXX', SCZdata$PDI.total/21, SCZdata$PDI.total/40) 
+mrob.PDI <- lmrob(Csminus ~ PDIadjN + STUDY +Age.Y+gender, data=PDIdata)
 
-PDInoout <- PDIdata[(PDIdata$PDI.total < 30) , ]
-mrob.PDI2 <- summary(lmrob(Csminus ~ PDI.total + STUDY +Age.Y+gender, data=PDInoout))
-
-PDIdata$adj <- returnAdj(data = PDIdata, measure = "Csminus", covars = c("STUDY", "Age.Y", "gender" ))
-
-p <- ggplot(data=PDIdata, aes(x=PDI.total, y=adj)) + 
-  geom_point(color="deeppink1", size=3, shape=21) +
-  labs(y ='SCR', x = "PDI score", title = 'CS-') +
-  theme(plot.title = element_text(size=26, hjust = 0.5),
+#PDIdata$adj <- returnAdj(data = PDIdata, measure = "Csminus", covars = c("STUDY", "Age.Y", "gender" ))
+outcome <- predict(mrob.PDI, PDIdata)
+p <- ggplot(data=PDIdata, aes(x=PDIadjN, y=Csminus)) + 
+  geom_point(color="black", size=3, shape=16, alpha=.6) +
+  geom_smooth(method = "lm", colour='deeppink1', mapping=aes(y=outcome)) +
+  labs(y ='SCR (a.u.)', x = "PDI score", title = 'CS-') +
+  theme(plot.title = element_text(size=28, hjust = 0.5),
         axis.text=element_text(size=22),
-        axis.title=element_text(size=22),
-        legend.text = element_text(size=22),
-        legend.title = element_text(size=22)) +
-  scale_x_continuous(breaks = c(0,20,40)) +
-  scale_y_continuous(breaks = c(-0.5,0,0.5)) +
-  stat_smooth(method=function(formula,data,weights=weight) rlm(formula,
-                                                               data,
-                                                               weights=weight,
-                                                               method="MM"),
-              fullrange=TRUE) +
-  geom_text(mapping = aes(x = 30, y = 0.5, label = "Beta = 0.007 \n P-value = 0.033",fontface='plain', family = "Arial"), size=5)
+        axis.title=element_text(size=24),
+        plot.margin = margin(10, 20, 10, 10)) +
+  scale_x_continuous(breaks = c(0,0.5,1)) +
+  scale_y_continuous(breaks = c(-0.6,0,0.6)) 
 
-ggsave(file="~/Documents/Research/SCZ_SCR/CSminus_delusions.png", plot=p, width=5, height=6, dpi=300, units='in') 
+ggsave(file="~/Documents/Research/SCZ_SCR/CSminus_delusions.png", plot=p, width=4, height=4, dpi=300, units='in') 
 
