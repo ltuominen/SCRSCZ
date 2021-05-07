@@ -2,7 +2,7 @@
 ## "Acquisition of conditioned fear is impaired in schizophrenia – a pooled analysis of 4 Pavlovian fear conditioning studies"
 ##  by Lauri Tuominen, Liana Romaniuk, Mohammed R Milad, Donald C. Goff, Jeremy Hall, and Daphne Holt
 # load libraries 
-lapply(c('nlme', 'lmerTest', 'robustbase', 'effsize','metafor','ggplot2','gtable'), require, character.only = TRUE)
+lapply(c('nlme', 'lmerTest', 'robustbase','metafor','gtable'), require, character.only = TRUE)
 
 # load data
 data <- read.csv('~/Documents/Research/SCZ_SCR/CombinedSCR_all.csv')
@@ -15,10 +15,15 @@ data$contrast <- data$Csplus-data$Csminus
 data <- subset(data, ID!='USRE')
 
 # test if SCR responses to the contrast, CS+ or CS- are different between the groups while accounting for study
-
 m.contrast.cov <- summary(lme(contrast ~ Group + gender + Age.Y, random =~ 1|STUDY, data=data))
 m.Csminus.cov <- summary(lme(Csminus ~ Group + gender + Age.Y, random =~ 1|STUDY, data=data))
 m.Csplus.cov <- summary(lme(Csplus ~ Group + gender + Age.Y, random =~ 1|STUDY, data=data))
+
+# test if effects same if only unmedicated
+unmedicated <- subset(data, Group=='CTR' | (Group=='SCZ' & CPZ == 0))
+m.contrast.unmed.cov <- summary(lme(contrast ~ Group + gender + Age.Y, random =~ 1|STUDY, data=unmedicated))
+m.Csminus.unmed.cov <- summary(lme(Csminus ~ Group + gender + Age.Y, random =~ 1|STUDY, data=unmedicated))
+m.Csplus.unmed.cov <- summary(lme(Csplus ~ Group + gender + Age.Y, random =~ 1|STUDY, data=unmedicated))
 
 # write group effects 
 sink('~/Documents/Research/SCZ_SCR/group.differences.txt')
@@ -62,6 +67,14 @@ mrob.PDI <- summary(lmrob(Csminus ~ PDIadjN + STUDY +Age.Y+gender, data=PDIdata)
 sink('~/Documents/Research/SCZ_SCR/PDIxCSminus.txt')
 print(mrob.PDI)
 sink()
+
+## test if the effect of PDI on CS- is similar accross all studies 
+for (s in levels(SCZdata$STUDY)) {
+  mrob.PDI <- summary(lmrob(Csminus ~ PDI.total +Age.Y+gender, data=subset(PDIdata, STUDY=s) ))
+  print(s)
+  print(mrob.PDI)
+}
+
 
 ## calculate overall effect size using metafor 
 means = aggregate(data$contrast, by = list(data$STUDY,data$Group),FUN = mean)

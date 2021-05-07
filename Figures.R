@@ -2,7 +2,7 @@
 ## "Acquisition of conditioned fear is impaired in schizophrenia – a pooled analysis of 4 Pavlovian fear conditioning studies"
 ##  by Lauri Tuominen, Liana Romaniuk, Mohammed R Milad, Donald C. Goff, Jeremy Hall, and Daphne Holt
 # load libraries 
-lapply(c('nlme', 'lmerTest', 'robustbase', 'ggplot2','gtable', "MASS", "gridExtra"), require, character.only = TRUE)
+lapply(c('nlme', 'lmerTest', 'robustbase', 'ggplot2','effsize','gtable', "MASS", "gridExtra"), require, character.only = TRUE)
 source('~/Documents/Research/SCZ_SCR/returnAdj.R')
 
 # load data
@@ -130,15 +130,14 @@ PDIdata <- PDIdata[complete.cases(PDIdata$PDI.total), ]
 PDIdata$PDIadjN <- ifelse(SCZdata$STUDY=='TUOMINEN_XXXX', SCZdata$PDI.total/21, SCZdata$PDI.total/40) 
 mrob.PDI <- lmrob(Csminus ~ PDIadjN + STUDY +Age.Y+gender, data=PDIdata)
 
-#PDIdata$adj <- returnAdj(data = PDIdata, measure = "Csminus", covars = c("STUDY", "Age.Y", "gender" ))
 outcome <- predict(mrob.PDI, PDIdata)
 p <- ggplot(data=PDIdata, aes(x=PDIadjN, y=Csminus)) + 
   geom_point(color="black", size=3, shape=16, alpha=.6) +
-  geom_smooth(method = "lm", colour='deeppink1', mapping=aes(y=outcome)) +
-  labs(y ='SCR (a.u.)', x = "PDI score", title = 'CS-') +
-  theme(plot.title = element_text(size=28, hjust = 0.5),
-        axis.text=element_text(size=22),
-        axis.title=element_text(size=24),
+  geom_smooth(method = "lm", colour='deeppink1', mapping=aes(y=outcome), se=FALSE) +
+  labs(y ='SCR (a.u.)', x = "PDI score", title = '') +
+  theme(plot.title = element_text(size=22, hjust = 0.5),
+        axis.text=element_text(size=18),
+        axis.title=element_text(size=18),
         plot.margin = margin(10, 20, 10, 10)) +
   scale_x_continuous(breaks = c(0,0.5,1)) +
   scale_y_continuous(breaks = c(-0.6,0,0.6)) 
