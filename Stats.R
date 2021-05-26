@@ -1,5 +1,5 @@
 ## Statistical analyses for the manuscript:
-## "Acquisition of conditioned fear is impaired in schizophrenia – a pooled analysis of 4 Pavlovian fear conditioning studies"
+## "Impairment in acquisition of conditioned fear in schizophrenia: a pooled analysis of four studies"
 ##  by Lauri Tuominen, Liana Romaniuk, Mohammed R Milad, Donald C. Goff, Jeremy Hall, and Daphne Holt
 # load libraries 
 lapply(c('nlme', 'lmerTest', 'robustbase','metafor','gtable'), require, character.only = TRUE)
@@ -67,14 +67,6 @@ mrob.PDI <- summary(lmrob(Csminus ~ PDIadjN + STUDY +Age.Y+gender, data=PDIdata)
 sink('~/Documents/Research/SCZ_SCR/PDIxCSminus.txt')
 print(mrob.PDI)
 sink()
-
-## test if the effect of PDI on CS- is similar accross all studies 
-for (s in levels(SCZdata$STUDY)) {
-  mrob.PDI <- summary(lmrob(Csminus ~ PDI.total +Age.Y+gender, data=subset(PDIdata, STUDY=s) ))
-  print(s)
-  print(mrob.PDI)
-}
-
 
 ## calculate overall effect size using metafor 
 means = aggregate(data$contrast, by = list(data$STUDY,data$Group),FUN = mean)
